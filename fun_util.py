@@ -1,3 +1,4 @@
+
 import cv2, pickle
 import numpy as np
 import tensorflow as tf
@@ -6,6 +7,33 @@ import os
 import sqlite3, pyttsx3
 from keras.models import load_model
 from threading import Thread
+from flask import Flask,render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+   return render_template('E:\Sign Languge Recognition\Sign-Language-main\index.html')
+
+def generate_frames():
+	while True:
+
+		success,frame=cam.read()
+		if not success:
+			break
+		else:
+			ret,buffer=cv2.imencode('.jpg',frame)
+			frame = buffer.tobytes()
+		yield (b'--frame\r\n'
+			   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+@app.route('/video')
+def video():
+	return Response(generate_frames(),mimetypes='multipart/x-mixed-replace;b')
+
+if __name__=="__main__":
+	app.run(debug=True)
+
 engine = pyttsx3.init()
 engine.setProperty('rate', 150)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
